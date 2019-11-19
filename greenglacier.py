@@ -180,7 +180,8 @@ class GreenGlacierUploader(object):
             work = work_queue.get()
             active.spawn(multipart_upload, work, self.callback)
         active.join()  # wait for final chunks to upload..
-        final_checksum = bytes_to_hex(tree_hash(self.res))
+        # We get hashes back as hex strings, but compute them as bytes
+        final_checksum = bytes_to_hex(tree_hash(self.res)) if len(self.res) > 1 else tree_hash(self.res)
         multipart_upload.complete(archiveSize=str(filesize), checksum=final_checksum)
 
     def callback(self, g):
