@@ -129,7 +129,7 @@ class MultipartPartUploader(gevent.Greenlet):
         filename, offset, size = self.work
         print('uploading chunk %s' % offset)
         chunk = self.readfile(filename, offset, size)
-        return self.upload_part(chunk, offset, size)
+        return self.upload_part(chunk, offset, len(chunk))
 
     def readfile(self, filename, offset, size):
         with open(filename, 'rb') as fileobj:
