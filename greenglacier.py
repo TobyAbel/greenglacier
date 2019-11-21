@@ -160,7 +160,7 @@ class GreenGlacierUploader(object):
         self.part_size = part_size  # will be overridden on upload
         self.concurrent_uploads = concurrent_uploads
 
-    def prepare(self, filename, description):
+    def prepare(self, filename, description=None):
         self.filename = filename
         description = description or filename
         filesize = os.stat(filename).st_size
