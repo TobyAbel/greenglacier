@@ -176,7 +176,7 @@ class GreenGlacierUploader(object):
         self.description = description or filename
         filesize = os.stat(filename).st_size
         minimum = minimum_part_size(filesize)
-        self.part_size = min(self.part_size, minimum) if self.part_size else minimum
+        self.part_size = max(self.part_size, minimum) if self.part_size else minimum
         total_parts = int((filesize / self.part_size) + 1)
         print('Preparing to upload %s with %s %s-sized parts' % (filename, total_parts, self.part_size))
         print('This is expected to cost $%s in request fees, transfer is free' % (PRICE_PER_THOUSAND_REQUESTS * total_parts / 1000))
