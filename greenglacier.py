@@ -24,6 +24,13 @@ _MEGABYTE = 1024 * 1024
 DEFAULT_PART_SIZE = 4 * _MEGABYTE
 MAXIMUM_NUMBER_OF_PARTS = 10000
 
+# This is in USD and is correct for eu-west-1 at the time of writing
+# CHECK THIS FOR YOURSELF!
+PRICE_PER_THOUSAND_REQUESTS = 0.055
+STORAGE_PRICE_PER_GB_MONTH = 0.004
+RETRIEVAL_PRICE_PER_THOUSAND_REQUESTS = 0.055
+RETRIEVAL_PRICE_PER_GB = 0.01
+
 
 def tree_hash(fo):
     """
@@ -167,7 +174,10 @@ class GreenGlacierUploader(object):
         minimum = minimum_part_size(filesize)
         self.part_size = min(self.part_size, minimum) if self.part_size else minimum
         total_parts = int((filesize / self.part_size) + 1)
-        print('preparing to upload %s with %s %s-sized parts' % (filename, total_parts, self.part_size))
+        print('Preparing to upload %s with %s %s-sized parts' % (filename, total_parts, self.part_size))
+        print('This is expected to cost $%s in request fees, transfer is free' % PRICE_PER_THOUSAND_REQUESTS * total_parts / 1000)
+        print('Storing this archive will cost $%s per month' % STORAGE_PRICE_PER_GB_MONTH * filesize / 1000000000)
+        print('Retrieving this archive will cost $%s in request fees, and $%s in transfer fees' % RETRIEVAL_PRICE_PER_THOUSAND_REQUESTS / 1000, RETRIEVAL_PRICE_PER_GB * filesize / 1000000000)
 
     def upload(self, filename=None, description=None):
         filename = filename or self.filename
@@ -180,7 +190,7 @@ class GreenGlacierUploader(object):
         minimum = minimum_part_size(filesize)
         self.part_size = min(self.part_size, minimum) if self.part_size else minimum
         total_parts = int((filesize / self.part_size) + 1)
-        print('uploading %s with %s %s-sized parts' % (filename, total_parts, self.part_size))
+        print('Uploading %s with %s %s-sized parts...' % (filename, total_parts, self.part_size))
         self.res = [None] * total_parts
 
         multipart_upload = self.vault.initiate_multipart_upload(archiveDescription=description,
