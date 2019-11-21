@@ -136,7 +136,7 @@ class MultipartPartUploader(gevent.Greenlet):
         filename, offset, size = self.work
         print('uploading chunk %s' % offset)
         chunk = self.readfile(filename, offset, size)
-        return self.upload_part(chunk, offset, len(chunk))
+        return self.upload_part(chunk, offset, size)
 
     def readfile(self, filename, offset, size):
         with open(filename, 'rb') as fileobj:
@@ -151,7 +151,7 @@ class MultipartPartUploader(gevent.Greenlet):
 
         hashstring = bytes_to_hex(tree_hash(chunk_hashes(chunk)))
         first_byte = offset * size
-        last_byte = first_byte + size - 1
+        last_byte = first_byte + len(chunk) - 1
         rangestr = 'bytes %d-%d/*' % (first_byte, last_byte)
         retry_upload(rangestr, hashstring, chunk)
 
