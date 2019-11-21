@@ -160,7 +160,20 @@ class GreenGlacierUploader(object):
         self.part_size = part_size  # will be overridden on upload
         self.concurrent_uploads = concurrent_uploads
 
-    def upload(self, filename, description=None):
+    def prepare(self, filename, description):
+        self.filename = filename
+        description = description or filename
+        filesize = os.stat(filename).st_size
+        minimum = minimum_part_size(filesize)
+        self.part_size = min(self.part_size, minimum) if self.part_size else minimum
+        total_parts = int((filesize / self.part_size) + 1)
+        print('preparing to upload %s with %s %s-sized parts' % (filename, total_parts, self.part_size))
+
+    def upload(self, filename=None, description=None):
+        filename = filename or self.filename
+        if not filename:
+            print('you need to specify a file to upload')
+            return
         description = description or filename
         work_queue = gevent.queue.Queue()
         filesize = os.stat(filename).st_size
