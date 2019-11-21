@@ -152,7 +152,7 @@ class MultipartPartUploader(gevent.Greenlet):
         hashstring = bytes_to_hex(tree_hash(chunk_hashes(chunk)))
         first_byte = offset * size
         last_byte = first_byte + size - 1
-        rangestr = 'bytes %d-%d/*' % (first_byte, last_byte) if not last_part else 'bytes %d-%d/'
+        rangestr = 'bytes %d-%d/*' % (first_byte, last_byte)
         retry_upload(rangestr, hashstring, chunk)
 
         return offset, hashstring
