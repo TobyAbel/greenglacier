@@ -168,8 +168,12 @@ class GreenGlacierUploader(object):
         self.concurrent_uploads = concurrent_uploads
 
     def prepare(self, filename, description=None):
+        """
+        Allows you to check the vital stats (including cost) of an upload
+        before you commit to it.
+        """
         self.filename = filename
-        description = description or filename
+        self.description = description or filename
         filesize = os.stat(filename).st_size
         minimum = minimum_part_size(filesize)
         self.part_size = min(self.part_size, minimum) if self.part_size else minimum
@@ -184,7 +188,7 @@ class GreenGlacierUploader(object):
         if not filename:
             print('you need to specify a file to upload')
             return
-        description = description or filename
+        description = description or self.description or filename
         work_queue = gevent.queue.Queue()
         filesize = os.stat(filename).st_size
         minimum = minimum_part_size(filesize)
