@@ -174,7 +174,7 @@ class GreenGlacierUploader(object):
         """
         self.filename = filename
         self.description = description or filename
-        self.filesize = os.stat(filename).st_size
+        self.filesize = os.stat(self.filename).st_size
         self.minimum = minimum_part_size(self.filesize)
         self.part_size = max(self.part_size, self.minimum) if self.part_size else self.minimum
         self.total_parts = int((self.filesize / self.part_size) + 1)
@@ -184,7 +184,10 @@ class GreenGlacierUploader(object):
         print('Retrieving this archive will cost $%s in request fees, and $%s in transfer fees' % (RETRIEVAL_PRICE_PER_THOUSAND_REQUESTS / 1000, RETRIEVAL_PRICE_PER_GB * self.filesize / 1000000000))
 
     def upload(self, filename=None, description=None):
-        self.prepare(filename, description)
+        if filename and filename != self.filename:
+            self.prepare(filename, description)
+        else:
+            self.description = description or self.description
         work_queue = gevent.queue.Queue()
         print('Uploading %s with %s %s-sized parts...' % (filename, self.total_parts, self.part_size))
         self.res = [None] * self.total_parts
