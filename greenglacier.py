@@ -174,33 +174,25 @@ class GreenGlacierUploader(object):
         """
         self.filename = filename
         self.description = description or filename
-        filesize = os.stat(filename).st_size
-        minimum = minimum_part_size(filesize)
-        self.part_size = max(self.part_size, minimum) if self.part_size else minimum
-        total_parts = int((filesize / self.part_size) + 1)
-        print('Preparing to upload %s with %s %s-sized parts' % (filename, total_parts, self.part_size))
-        print('This is expected to cost $%s in request fees, transfer is free' % (PRICE_PER_THOUSAND_REQUESTS * total_parts / 1000))
-        print('Storing this archive will cost $%s per month' % (STORAGE_PRICE_PER_GB_MONTH * filesize / 1000000000))
-        print('Retrieving this archive will cost $%s in request fees, and $%s in transfer fees' % (RETRIEVAL_PRICE_PER_THOUSAND_REQUESTS / 1000, RETRIEVAL_PRICE_PER_GB * filesize / 1000000000))
+        self.filesize = os.stat(filename).st_size
+        self.minimum = minimum_part_size(self.filesize)
+        self.part_size = max(self.part_size, self.minimum) if self.part_size else self.minimum
+        self.total_parts = int((self.filesize / self.part_size) + 1)
+        print('Preparing to upload %s with %s %s-sized parts' % (filename, self.total_parts, self.part_size))
+        print('This is expected to cost $%s in request fees, transfer is free' % (PRICE_PER_THOUSAND_REQUESTS * self.total_parts / 1000))
+        print('Storing this archive will cost $%s per month' % (STORAGE_PRICE_PER_GB_MONTH * self.filesize / 1000000000))
+        print('Retrieving this archive will cost $%s in request fees, and $%s in transfer fees' % (RETRIEVAL_PRICE_PER_THOUSAND_REQUESTS / 1000, RETRIEVAL_PRICE_PER_GB * self.filesize / 1000000000))
 
     def upload(self, filename=None, description=None):
-        filename = filename or self.filename
-        if not filename:
-            print('you need to specify a file to upload')
-            return
-        description = description or self.description or filename
+        self.prepare(filename, description)
         work_queue = gevent.queue.Queue()
-        filesize = os.stat(filename).st_size
-        minimum = minimum_part_size(filesize)
-        self.part_size = min(self.part_size, minimum) if self.part_size else minimum
-        total_parts = int((filesize / self.part_size) + 1)
-        print('Uploading %s with %s %s-sized parts...' % (filename, total_parts, self.part_size))
-        self.res = [None] * total_parts
+        print('Uploading %s with %s %s-sized parts...' % (filename, self.total_parts, self.part_size))
+        self.res = [None] * self.total_parts
 
-        multipart_upload = self.vault.initiate_multipart_upload(archiveDescription=description,
+        multipart_upload = self.vault.initiate_multipart_upload(archiveDescription=self.description,
                                                                 partSize=str(self.part_size))
-        for part in range(total_parts):
-            work_queue.put((filename, part, self.part_size))
+        for part in range(self.total_parts):
+            work_queue.put((self.filename, part, self.part_size))
 
         active = gevent.pool.Pool(self.concurrent_uploads, MultipartPartUploader)
         while not work_queue.empty():  # TODO: replace with list e.g. if work: spawn(m, work.pop())
@@ -209,7 +201,7 @@ class GreenGlacierUploader(object):
         active.join()  # wait for final chunks to upload..
         # We get hashes back as hex strings, but compute them as bytes
         final_checksum = bytes_to_hex(tree_hash(self.res)) if len(self.res) > 1 else tree_hash(self.res)
-        multipart_upload.complete(archiveSize=str(filesize), checksum=final_checksum)
+        multipart_upload.complete(archiveSize=str(self.filesize), checksum=final_checksum)
 
     def callback(self, g):
         print('greenlet finished, saving value')
