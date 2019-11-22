@@ -141,6 +141,8 @@ class MultipartPartUploader(gevent.Greenlet):
         return self.upload_part(chunk, offset, size)
 
     def readfile(self, filename, offset, size):
+        filesize = os.stat(filename).st_size
+        print('Reading bytes %s to %s (or less, if we run out of file to read) of %s' % (offset * size, offset * size + size, filesize))
         with open(filename, 'rb') as fileobj:
             fileobj.seek(offset * size)
             return fileobj.read(size)
