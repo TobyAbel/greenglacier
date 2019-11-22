@@ -190,7 +190,7 @@ class GreenGlacierUploader(object):
         else:
             self.description = description or self.description
         work_queue = gevent.queue.Queue()
-        print('Uploading %s with %s %s-sized parts...' % (filename, self.total_parts, self.part_size))
+        print('Uploading %s with %s %s-sized parts...' % (self.filename, self.total_parts, self.part_size))
         self.res = [None] * self.total_parts
 
         multipart_upload = self.vault.initiate_multipart_upload(archiveDescription=self.description,
