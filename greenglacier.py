@@ -137,7 +137,7 @@ class MultipartPartUploader(gevent.Greenlet):
 
     def _run(self):
         filename, offset, size = self.work
-        print('uploading chunk %s' % offset)
+        print('Loading chunk %s' % offset)
         chunk = self.readfile(filename, offset, size)
         return self.upload_part(chunk, offset, size)
 
@@ -149,7 +149,7 @@ class MultipartPartUploader(gevent.Greenlet):
     def upload_part(self, chunk, offset, size):
         @retry(stop_max_attempt_number=self.retries)
         def retry_upload(range, checksum, body):
-            print('trying upload %s with range %s' % (checksum, range))
+            print('Uploading chunk %s - hashstring %s - range %s' % (chunk, checksum, range))
             self.upload.upload_part(range=range, checksum=str(checksum), body=body)
 
         hashbytes = tree_hash(chunk_hashes(chunk))
@@ -207,10 +207,6 @@ class GreenGlacierUploader(object):
             active.spawn(multipart_upload, work, self.callback)
         active.join()  # wait for final chunks to upload..
         print('Completing uploading with total size %s' % (self.filesize))
-        print('There were %s results with checksums to combine' % (len(self.res)))
-        print('The checksums were:')
-        pp = pprint.PrettyPrinter()
-        pp.pprint(self.res)
         # We get hashes back as hex strings, but compute them as bytes
         final_checksum = bytes_to_hex(tree_hash(self.res)) if len(self.res) > 1 else tree_hash(self.res)
         multipart_upload.complete(archiveSize=str(self.filesize), checksum=final_checksum)
