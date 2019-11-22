@@ -24,7 +24,6 @@ from retrying import retry
 
 _MEGABYTE = 1024 * 1024
 DEFAULT_PART_SIZE = 4 * _MEGABYTE
-DEFAULT_PART_SIZE = 4096 * _MEGABYTE
 MAXIMUM_NUMBER_OF_PARTS = 10000
 
 # This is in USD and is correct for eu-west-1 at the time of writing
