@@ -149,7 +149,7 @@ class MultipartPartUploader(gevent.Greenlet):
     def upload_part(self, chunk, offset, size):
         @retry(stop_max_attempt_number=self.retries)
         def retry_upload(range, checksum, body):
-            print('Uploading chunk %s - hashstring %s - range %s' % (chunk, checksum, range))
+            print('Uploading chunk %s - hashstring %s - range %s' % (offset, checksum, range))
             self.upload.upload_part(range=range, checksum=str(checksum), body=body)
 
         hashbytes = tree_hash(chunk_hashes(chunk))
