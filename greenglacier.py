@@ -12,6 +12,8 @@ import gevent.pool
 import gevent.queue
 import gevent.monkey
 
+import pprint
+
 gevent.monkey.patch_socket()
 gevent.monkey.patch_ssl()
 gevent.monkey.patch_os()
@@ -205,6 +207,9 @@ class GreenGlacierUploader(object):
         active.join()  # wait for final chunks to upload..
         print('Completing uploading with total size %s' % (self.filesize))
         print('There were %s results with checksums to combine' % (len(self.res)))
+        print('The checksums were:')
+        pp = pprint.PrettyPrinter()
+        pp.pprint(self.res)
         # We get hashes back as hex strings, but compute them as bytes
         final_checksum = bytes_to_hex(tree_hash(self.res)) if len(self.res) > 1 else tree_hash(self.res)
         multipart_upload.complete(archiveSize=str(self.filesize), checksum=final_checksum)
