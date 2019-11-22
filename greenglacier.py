@@ -152,7 +152,7 @@ class MultipartPartUploader(gevent.Greenlet):
             print('trying upload %s with range %s' % (checksum, range))
             self.upload.upload_part(range=range, checksum=str(checksum), body=body)
 
-        hashstring = bytes_to_hex(tree_hash(chunk_hashes(chunk)))
+        hashstring = tree_hash(chunk_hashes(chunk))
         first_byte = offset * size
         last_byte = first_byte + len(chunk) - 1
         rangestr = 'bytes %d-%d/*' % (first_byte, last_byte)
